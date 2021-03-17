@@ -47,11 +47,10 @@ class MainActivity : AppCompatActivity(), MusicAdapter.SongDelegate, PlayerFragm
 
 
         playServiceIntent = Intent(this, PlayMusicService::class.java)
-        //startService(playServiceIntent)//a started service can become a bound...
-
-        Handler(mainLooper).postDelayed({
-            bindService(playServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)//Bind to service..
-        }, 2000)
+        startService(playServiceIntent)//a started service can become a bound...
+//        Handler(mainLooper).postDelayed({
+        bindService(playServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)//Bind to service..
+//        }, 2000)
     }
 
     override fun onDestroy() {
@@ -92,11 +91,9 @@ class MainActivity : AppCompatActivity(), MusicAdapter.SongDelegate, PlayerFragm
         if(this::playService.isInitialized){
             if(playingBoolean.getAndSet(false)) {
                 playService.pauseSong()
-                //TODO: change imageview to play from fragment
             } else{
                 playingBoolean.set(true)
                 playService.playSong()
-                //TODO: change imageview to pause
             }
         }
     }
@@ -107,8 +104,7 @@ class MainActivity : AppCompatActivity(), MusicAdapter.SongDelegate, PlayerFragm
             songIndex++
             if(songIndex == songList.size)
                 songIndex = 0
-
-            playService.chooseSong(songList[songIndex])
+            changeSong()
         }
     }
 
@@ -117,7 +113,18 @@ class MainActivity : AppCompatActivity(), MusicAdapter.SongDelegate, PlayerFragm
             songIndex--
             if(songIndex < 0)
                 songIndex = songList.size-1
-            playService.chooseSong(songList[songIndex])
+            changeSong()
         }
     }
+
+    private fun changeSong() {
+        songList[songIndex].let {
+            songFragment.updateSongUI(it)
+            playService.chooseSong(it)
+            playingBoolean.set(true)
+        }
+    }
+
+    override fun isPlaying(): Boolean = playingBoolean.get()
+
 }
